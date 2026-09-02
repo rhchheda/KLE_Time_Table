@@ -23,7 +23,7 @@ const CONFIG = {
   SESSION_TIMEOUT: 3600000,
 
   // For DEMO ONLY - Set to false in production
-  DEMO_MODE: true,
+  DEMO_MODE: false,
   DEMO_CREDENTIALS: {
     admin: 'admin@kletech2026',
     faculty: 'faculty@kletech2026',
