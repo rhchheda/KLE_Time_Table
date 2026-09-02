@@ -3,342 +3,409 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KLE Timetable Portal</title>
+  <title>KLE Timetable Portal · Schedule Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --navy: #2c3e50;
-      --navy-light: #34495e;
-      --gold: #f39c12;
-      --blue: #3498db;
-      --green: #27ae60;
-      --red: #e74c3c;
-      --gray: #95a5a6;
-      --light: #ecf0f1;
+      --navy: #0d1b3e;
+      --navy-2: #182b55;
+      --gold: #c9a84c;
+      --gold-2: #ead282;
+      --ink: #13203c;
+      --muted: #68758f;
+      --line: rgba(13, 27, 62, 0.12);
       --paper: #ffffff;
+      --soft: #f5f1e8;
+      --wash: #eef3f8;
+      --green: #1f7a4d;
+      --red: #c24035;
+      --blue: #226da8;
+      --shadow: 0 18px 45px rgba(13, 27, 62, 0.12);
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { box-sizing: border-box; }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+      margin: 0; padding: 0;
+      font-family: Outfit, system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--soft);
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      padding-bottom: 40px;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+
+    /* Loading Screen */
+    .loading {
+      position: fixed; inset: 0; z-index: 60;
+      display: grid; place-items: center;
+      background: var(--navy); color: white;
+    }
+    .loading.hidden { display: none; }
+    .loading-box { text-align: center; }
+    .loading-logo {
+      font-family: "Cormorant Garamond", serif;
+      font-size: 40px; font-weight: 600;
+    }
+    .loading-logo span { color: var(--gold); font-style: italic; }
+    .loading-text {
+      margin-top: 12px; color: rgba(255,255,255,0.55);
+      font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
     }
 
-    .container {
-      max-width: 1200px;
-      width: 100%;
-      background: var(--paper);
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      overflow: hidden;
+    /* Hero */
+    .hero {
+      background:
+        linear-gradient(90deg, rgba(13,27,62,0.97) 0%, rgba(13,27,62,0.88) 42%, rgba(24,43,85,0.7) 100%),
+        var(--navy);
+      color: white; padding: 40px 18px; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ""; position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.07) 1px, transparent 1px);
+      background-size: 48px 48px; mix-blend-mode: screen; opacity: 0.7;
+    }
+    .hero-inner {
+      position: relative; max-width: 1240px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr minmax(280px, 350px);
+      gap: 28px; align-items: center;
+    }
+    .eyebrow {
+      color: var(--gold-2); letter-spacing: 0.14em; text-transform: uppercase;
+      font-size: 11.5px; font-weight: 700;
+    }
+    h1 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(34px, 5.6vw, 62px);
+      line-height: 0.98; margin: 10px 0; max-width: 780px;
+    }
+    h1 em { color: var(--gold-2); font-style: italic; }
+    .hero-copy { color: rgba(255,255,255,0.66); max-width: 660px; line-height: 1.6; font-size: 14.5px; }
+    .live {
+      border: 1px solid rgba(201,168,76,0.3); padding: 18px; border-radius: 10px; min-width: 0;
+      background:
+        linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)),
+        radial-gradient(circle at top right, rgba(201,168,76,0.18), transparent 48%);
+      box-shadow: 0 18px 46px rgba(0,0,0,0.18);
+    }
+    .live-label {
+      color: rgba(255,255,255,0.5); font-size: 10.5px;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .live-value {
+      margin-top: 6px; color: var(--gold-2);
+      font-family: "JetBrains Mono", monospace; font-size: 12px;
+    }
+    .live-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: #37d47e; margin-right: 7px; vertical-align: 1px;
+      box-shadow: 0 0 0 3px rgba(55,212,126,0.22); animation: pulse 1.6s ease-in-out infinite;
     }
 
-    .header {
-      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
-      color: white;
-      padding: 50px 30px;
-      text-align: center;
-    }
+    main { max-width: 1240px; margin: 0 auto; padding: 20px 18px 56px; }
 
-    .header h1 {
-      font-size: 42px;
-      margin-bottom: 10px;
-      font-weight: 700;
-    }
-
-    .header p {
-      font-size: 16px;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 50px 30px;
-    }
-
+    /* Portals Grid */
     .portals-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 30px;
-      margin-bottom: 40px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px; margin-bottom: 18px;
     }
-
     .portal-card {
-      background: var(--paper);
-      border: 2px solid var(--light);
-      border-radius: 10px;
-      padding: 30px;
-      text-align: center;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 8px; padding: 24px; box-shadow: 0 10px 26px rgba(13,27,62,0.07);
+      text-align: center; position: relative; overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      animation: riseIn 0.45s ease both;
     }
-
-    .portal-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-      border-color: var(--gold);
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-
+    @keyframes pulse {
+      0%, 100% { transform: scale(0.78); opacity: 0.65; }
+      50% { transform: scale(1); opacity: 1; }
+    }
+    .portal-card::before {
+      content: ""; position: absolute; inset: 0 0 auto 0; height: 4px;
+      background: var(--accent, var(--gold));
+    }
+    .portal-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
     .portal-icon {
-      font-size: 48px;
-      margin-bottom: 15px;
+      font-size: 48px; margin-bottom: 15px;
     }
-
     .portal-card h2 {
-      color: var(--navy);
-      font-size: 22px;
-      margin-bottom: 12px;
+      color: var(--navy); font-size: 22px; margin-bottom: 12px; font-weight: 700;
     }
-
     .portal-card p {
-      color: #7f8c8d;
-      font-size: 14px;
-      margin-bottom: 20px;
-      line-height: 1.6;
+      color: var(--muted); font-size: 13.5px; margin-bottom: 20px; line-height: 1.6;
     }
-
     .portal-card .users {
-      font-size: 12px;
-      color: var(--gray);
-      margin-bottom: 20px;
+      font-size: 11px; color: var(--muted); margin-bottom: 20px;
+      letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;
     }
-
     .btn {
-      display: inline-block;
-      padding: 12px 28px;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.3s ease;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 20px; border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      transition: all 0.2s ease; text-decoration: none;
     }
-
     .btn-primary {
-      background: var(--blue);
-      color: white;
+      background: var(--blue); color: white;
     }
-
     .btn-primary:hover {
-      background: #2980b9;
-      transform: translateY(-2px);
+      background: #1e5a8e; transform: translateY(-2px);
     }
-
     .btn-admin {
-      background: var(--gold);
-      color: var(--navy);
+      background: var(--gold); color: var(--navy);
     }
-
     .btn-admin:hover {
-      background: #e67e22;
-      transform: translateY(-2px);
+      background: #d4912a; transform: translateY(-2px);
     }
 
+    /* KPIs */
+    .kpis {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+      gap: 12px; margin-bottom: 18px;
+    }
+    .kpi {
+      border: 1px solid var(--line); background: var(--paper); border-radius: 8px;
+      padding: 15px; min-height: 106px; box-shadow: 0 10px 26px rgba(13,27,62,0.07);
+      position: relative; overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      animation: riseIn 0.45s ease both;
+    }
+    .kpi::before {
+      content: ""; position: absolute; inset: 0 0 auto 0; height: 4px;
+      background: var(--accent, var(--gold));
+    }
+    .kpi::after {
+      content: ""; position: absolute; width: 88px; height: 88px;
+      right: -40px; bottom: -42px; border-radius: 50%;
+      background: color-mix(in srgb, var(--accent, var(--gold)) 15%, transparent);
+    }
+    .kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .kpi-label {
+      color: var(--muted); font-size: 10.5px; font-weight: 700;
+      letter-spacing: 0.09em; text-transform: uppercase;
+    }
+    .kpi-value {
+      font-family: "Cormorant Garamond", serif; font-size: 40px; line-height: 1;
+      margin-top: 8px; color: var(--accent, var(--navy));
+    }
+
+    /* Info Panel */
     .info-section {
-      background: var(--light);
-      padding: 30px;
-      border-radius: 10px;
-      margin-top: 30px;
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 8px; box-shadow: var(--shadow); padding: 24px; margin-bottom: 18px;
     }
-
     .info-section h3 {
-      color: var(--navy);
-      margin-bottom: 15px;
+      color: var(--navy); font-size: 19px; font-weight: 700; margin-bottom: 16px;
     }
-
     .info-section p {
-      color: #34495e;
-      line-height: 1.8;
-      margin-bottom: 10px;
+      color: var(--muted); line-height: 1.7; margin-bottom: 8px; font-size: 13.5px;
     }
+    .info-section strong { color: var(--ink); }
 
-    .features {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
-    }
-
-    .feature {
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      border-left: 4px solid var(--blue);
-    }
-
-    .feature strong {
-      color: var(--navy);
-    }
-
-    .feature p {
-      font-size: 13px;
-      color: #7f8c8d;
-      margin-top: 5px;
-    }
-
+    /* Footer */
     .footer {
-      background: var(--navy);
-      color: white;
-      padding: 20px;
-      text-align: center;
-      font-size: 13px;
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 25;
+      background: var(--navy); color: rgba(255,255,255,0.68);
+      border-top: 1px solid rgba(201,168,76,0.24); font-size: 12px;
+      padding: 12px; text-align: center;
     }
 
-    @media (max-width: 768px) {
-      .header h1 { font-size: 28px; }
+    /* Modals */
+    .modal {
+      display: none; position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.6); place-items: center;
+    }
+    .modal.show { display: grid; }
+    .modal-content {
+      background: white; border-radius: 10px; width: min(420px, 100%);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3); padding: 30px; margin: 20px;
+    }
+    .modal-title {
+      font-size: 22px; color: var(--navy); font-weight: 700; margin-bottom: 10px;
+    }
+    .modal-text {
+      color: var(--muted); margin-bottom: 20px; font-size: 13.5px; line-height: 1.5;
+    }
+    .modal-field {
+      width: 100%; padding: 11px 13px; border: 1px solid var(--line);
+      border-radius: 8px; margin-bottom: 16px; font-size: 13px;
+    }
+    .modal-error { color: var(--red); font-size: 12px; margin-bottom: 12px; min-height: 18px; }
+    .modal-actions {
+      display: flex; gap: 10px;
+    }
+    .modal-actions button {
+      flex: 1; padding: 10px; border: none; border-radius: 8px;
+      font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+    }
+    .btn-cancel { background: #f0f2f5; color: var(--navy); }
+    .btn-cancel:hover { background: #e0e2e7; }
+
+    @media (max-width: 720px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      h1 { font-size: clamp(30px, 10vw, 44px); }
       .portals-grid { grid-template-columns: 1fr; }
-      .content { padding: 30px 20px; }
     }
   </style>
   <script src="auth.js"></script>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>📊 KLE Timetable Portal</h1>
-      <p>Manage class schedules, faculty assignments, and student timetables</p>
-    </div>
-
-    <div class="content">
-      <div class="portals-grid">
-        <div class="portal-card">
-          <div class="portal-icon">👨‍💼</div>
-          <h2>Admin Dashboard</h2>
-          <p>Manage system configuration, faculty, departments, and monitor conflicts.</p>
-          <div class="users">Administrators Only</div>
-          <button class="btn btn-admin" onclick="openAdminLogin()">🔐 Admin Access</button>
-        </div>
-
-        <div class="portal-card">
-          <div class="portal-icon">👨‍🏫</div>
-          <h2>Faculty Portal</h2>
-          <p>View assigned classes, manage schedules, and track student attendance.</p>
-          <div class="users">All Faculty Members</div>
-          <button class="btn btn-primary" onclick="openFacultyLogin()">Enter Portal →</button>
-        </div>
-
-        <div class="portal-card">
-          <div class="portal-icon">👨‍🎓</div>
-          <h2>Student Portal</h2>
-          <p>Check your class timetable, faculty contacts, and schedule updates.</p>
-          <div class="users">All Students</div>
-          <button class="btn btn-primary" onclick="openStudentLogin()">Enter Portal →</button>
-        </div>
-      </div>
-
-      <div class="info-section">
-        <h3>✨ Portal Features</h3>
-        <div class="features">
-          <div class="feature">
-            <strong>📅 Timetable Management</strong>
-            <p>Real-time class schedules with venue and faculty details</p>
-          </div>
-          <div class="feature">
-            <strong>⚠️ Conflict Detection</strong>
-            <p>Automatic detection and resolution of scheduling conflicts</p>
-          </div>
-          <div class="feature">
-            <strong>📋 Audit Logging</strong>
-            <p>Complete audit trail of all system changes</p>
-          </div>
-          <div class="feature">
-            <strong>🔄 Backup & Recovery</strong>
-            <p>Automatic data backup and trash recovery system</p>
-          </div>
-        </div>
-
-        <h3 style="margin-top: 30px;">🔧 System Status</h3>
-        <p>
-          <strong>Institution:</strong> KLE Technological University<br>
-          <strong>Portal Version:</strong> 1.0.0<br>
-          <strong>Status:</strong> <span style="color: var(--green); font-weight: bold;">✓ OPERATIONAL</span><br>
-          <strong>Last Updated:</strong> <span id="updateTime"></span>
-        </p>
-      </div>
-    </div>
-
-    <div class="footer">
-      <p>KLE Timetable Portal v1.0.0 | Powered by Google Sheets & Apps Script</p>
+  <div class="loading" id="loading">
+    <div class="loading-box">
+      <div class="loading-logo">KLE <span>Timetable</span></div>
+      <div class="loading-text">Loading portal</div>
     </div>
   </div>
 
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Timetable Management System</div>
+        <h1>Manage Class <em>Schedules</em></h1>
+        <div class="hero-copy">Professional timetable scheduling for KLE Technological University. Manage faculty assignments, student schedules, and venue allocations with real-time conflict detection.</div>
+      </div>
+      <div class="live">
+        <div class="live-label">System Status</div>
+        <div class="live-value"><span class="live-dot"></span>OPERATIONAL</div>
+        <div class="live-label" style="margin-top: 14px;">Portal Version</div>
+        <div class="live-value">v1.0.0</div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <div class="kpis">
+      <div class="kpi" style="--accent: var(--gold);">
+        <div class="kpi-label">Total Faculty</div>
+        <div class="kpi-value">8</div>
+      </div>
+      <div class="kpi" style="--accent: var(--green);">
+        <div class="kpi-label">Active Classes</div>
+        <div class="kpi-value">12</div>
+      </div>
+      <div class="kpi" style="--accent: var(--blue);">
+        <div class="kpi-label">Total Subjects</div>
+        <div class="kpi-value">10</div>
+      </div>
+      <div class="kpi" style="--accent: #7251a5;">
+        <div class="kpi-label">Departments</div>
+        <div class="kpi-value">4</div>
+      </div>
+    </div>
+
+    <div class="portals-grid">
+      <div class="portal-card" style="--accent: var(--gold);">
+        <div class="portal-icon">👨‍💼</div>
+        <h2>Admin Console</h2>
+        <p>Manage system configuration, faculty, departments, and monitor scheduling conflicts.</p>
+        <div class="users">Administrators Only</div>
+        <button class="btn btn-admin" onclick="openLoginModal('admin')">🔐 Admin Access</button>
+      </div>
+
+      <div class="portal-card" style="--accent: var(--blue);">
+        <div class="portal-icon">👨‍🏫</div>
+        <h2>Faculty Portal</h2>
+        <p>View assigned classes, manage schedules, and track your weekly teaching load.</p>
+        <div class="users">All Faculty Members</div>
+        <button class="btn btn-primary" onclick="openLoginModal('faculty')">Enter Portal →</button>
+      </div>
+
+      <div class="portal-card" style="--accent: var(--green);">
+        <div class="portal-icon">👨‍🎓</div>
+        <h2>Student Portal</h2>
+        <p>Check your class timetable, faculty contacts, and important academic notices.</p>
+        <div class="users">All Students</div>
+        <button class="btn btn-primary" onclick="openLoginModal('student')">Enter Portal →</button>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h3>✨ Key Features</h3>
+      <p><strong>📅 Intelligent Scheduling:</strong> Automated timetable generation with conflict detection and resolution for faculty, classrooms, and resources.</p>
+      <p><strong>🔐 Role-Based Access:</strong> Separate authenticated portals for Admin, Faculty, and Students with secure session management.</p>
+      <p><strong>📊 Real-Time Analytics:</strong> Live KPIs tracking faculty load, class strength, venue usage, and scheduling efficiency.</p>
+      <p><strong>🔄 Data Integration:</strong> Connected to Google Sheets for seamless data management and automated backups.</p>
+      <p style="margin-top: 20px; border-top: 1px solid var(--line); padding-top: 16px;"><strong>Institution:</strong> KLE Technological University · <strong>Version:</strong> 1.0.0 · <strong>Status:</strong> <span style="color: var(--green); font-weight: 700;">✓ OPERATIONAL</span></p>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <span>KLE Timetable Portal v1.0.0</span> · <span>Powered by Google Sheets & Apps Script</span>
+  </footer>
+
   <!-- Admin Login Modal -->
-  <div id="adminLoginModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-    <div style="background: white; padding: 40px; border-radius: 10px; width: min(400px, 100%); box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-      <h2 style="color: var(--navy); margin-bottom: 20px;">🔐 Admin Password</h2>
-      <p style="color: #7f8c8d; margin-bottom: 20px;">Enter the admin password to access the console.</p>
-      <input type="password" id="adminPassword" placeholder="Password" style="width: 100%; padding: 12px; border: 1px solid var(--light); border-radius: 6px; margin-bottom: 20px; font-size: 14px;">
-      <div id="adminError" style="color: var(--red); font-size: 13px; margin-bottom: 15px;"></div>
-      <div style="display: flex; gap: 10px;">
-        <button onclick="closeLoginModal('admin')" class="btn" style="flex: 1; background: var(--light); color: var(--navy);">Cancel</button>
-        <button onclick="handleLogin('admin')" class="btn btn-admin" style="flex: 1;">Sign In</button>
+  <div id="adminModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title">🔐 Admin Console</div>
+      <div class="modal-text">Enter your admin password to access the console.</div>
+      <input type="password" id="adminPassword" class="modal-field" placeholder="Password">
+      <div class="modal-error" id="adminError"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeLoginModal('admin')">Cancel</button>
+        <button class="btn btn-admin" onclick="handleLogin('admin')">Sign In</button>
       </div>
     </div>
   </div>
 
   <!-- Faculty Login Modal -->
-  <div id="facultyLoginModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-    <div style="background: white; padding: 40px; border-radius: 10px; width: min(400px, 100%); box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-      <h2 style="color: var(--navy); margin-bottom: 20px;">🔐 Faculty Password</h2>
-      <p style="color: #7f8c8d; margin-bottom: 20px;">Enter your faculty password to access the portal.</p>
-      <input type="password" id="facultyPassword" placeholder="Password" style="width: 100%; padding: 12px; border: 1px solid var(--light); border-radius: 6px; margin-bottom: 20px; font-size: 14px;">
-      <div id="facultyError" style="color: var(--red); font-size: 13px; margin-bottom: 15px;"></div>
-      <div style="display: flex; gap: 10px;">
-        <button onclick="closeLoginModal('faculty')" class="btn" style="flex: 1; background: var(--light); color: var(--navy);">Cancel</button>
-        <button onclick="handleLogin('faculty')" class="btn btn-primary" style="flex: 1;">Sign In</button>
+  <div id="facultyModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title">🔐 Faculty Portal</div>
+      <div class="modal-text">Enter your faculty password to access the portal.</div>
+      <input type="password" id="facultyPassword" class="modal-field" placeholder="Password">
+      <div class="modal-error" id="facultyError"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeLoginModal('faculty')">Cancel</button>
+        <button class="btn btn-primary" onclick="handleLogin('faculty')">Sign In</button>
       </div>
     </div>
   </div>
 
   <!-- Student Login Modal -->
-  <div id="studentLoginModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-    <div style="background: white; padding: 40px; border-radius: 10px; width: min(400px, 100%); box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-      <h2 style="color: var(--navy); margin-bottom: 20px;">🔐 Student Password</h2>
-      <p style="color: #7f8c8d; margin-bottom: 20px;">Enter your student password to access the portal.</p>
-      <input type="password" id="studentPassword" placeholder="Password" style="width: 100%; padding: 12px; border: 1px solid var(--light); border-radius: 6px; margin-bottom: 20px; font-size: 14px;">
-      <div id="studentError" style="color: var(--red); font-size: 13px; margin-bottom: 15px;"></div>
-      <div style="display: flex; gap: 10px;">
-        <button onclick="closeLoginModal('student')" class="btn" style="flex: 1; background: var(--light); color: var(--navy);">Cancel</button>
-        <button onclick="handleLogin('student')" class="btn btn-primary" style="flex: 1;">Sign In</button>
+  <div id="studentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title">🔐 Student Portal</div>
+      <div class="modal-text">Enter your student password to access the portal.</div>
+      <input type="password" id="studentPassword" class="modal-field" placeholder="Password">
+      <div class="modal-error" id="studentError"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeLoginModal('student')">Cancel</button>
+        <button class="btn btn-primary" onclick="handleLogin('student')">Sign In</button>
       </div>
     </div>
   </div>
 
   <script>
-    function openAdminLogin() {
-      document.getElementById('adminLoginModal').style.display = 'flex';
-      document.getElementById('adminPassword').focus();
-    }
+    document.getElementById('loading').classList.add('hidden');
 
-    function openFacultyLogin() {
-      document.getElementById('facultyLoginModal').style.display = 'flex';
-      document.getElementById('facultyPassword').focus();
-    }
+    const modalMap = {
+      admin: { modal: 'adminModal', password: 'adminPassword', error: 'adminError', portal: 'admin.html' },
+      faculty: { modal: 'facultyModal', password: 'facultyPassword', error: 'facultyError', portal: 'faculty.html' },
+      student: { modal: 'studentModal', password: 'studentPassword', error: 'studentError', portal: 'student.html' }
+    };
 
-    function openStudentLogin() {
-      document.getElementById('studentLoginModal').style.display = 'flex';
-      document.getElementById('studentPassword').focus();
+    function openLoginModal(role) {
+      document.getElementById(modalMap[role].modal).classList.add('show');
+      document.getElementById(modalMap[role].password).focus();
     }
 
     function closeLoginModal(role) {
-      const modalMap = { admin: 'adminLoginModal', faculty: 'facultyLoginModal', student: 'studentLoginModal' };
-      const modal = document.getElementById(modalMap[role]);
-      modal.style.display = 'none';
-      modal.querySelector('input[type="password"]').value = '';
-      modal.querySelector('[id$="Error"]').textContent = '';
+      document.getElementById(modalMap[role].modal).classList.remove('show');
+      document.getElementById(modalMap[role].password).value = '';
+      document.getElementById(modalMap[role].error).textContent = '';
     }
 
     async function handleLogin(role) {
-      const passwordMap = { admin: 'adminPassword', faculty: 'facultyPassword', student: 'studentPassword' };
-      const errorMap = { admin: 'adminError', faculty: 'facultyError', student: 'studentError' };
-      const portalMap = { admin: 'admin.html', faculty: 'faculty.html', student: 'student.html' };
-
-      const password = document.getElementById(passwordMap[role]).value;
-      const errorEl = document.getElementById(errorMap[role]);
+      const config = modalMap[role];
+      const password = document.getElementById(config.password).value;
+      const errorEl = document.getElementById(config.error);
 
       if (!password) {
         errorEl.textContent = 'Please enter the password';
@@ -347,36 +414,32 @@
 
       const result = await login(role, password);
       if (result) {
-        window.location.href = portalMap[role];
+        window.location.href = config.portal;
       } else {
         errorEl.textContent = 'Incorrect password. Try again.';
-        document.getElementById(passwordMap[role]).select();
+        document.getElementById(config.password).select();
       }
     }
 
-    // Handle Enter key in password fields
-    document.getElementById('adminPassword').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') handleLogin('admin');
-    });
-    document.getElementById('facultyPassword').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') handleLogin('faculty');
-    });
-    document.getElementById('studentPassword').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') handleLogin('student');
-    });
-
-    // Close modal on background click
-    ['adminLoginModal', 'facultyLoginModal', 'studentLoginModal'].forEach(id => {
-      document.getElementById(id).addEventListener('click', function(e) {
-        if (e.target === this) {
-          const role = id.split('LoginModal')[0];
-          closeLoginModal(role);
+    // Enter key handler
+    Object.values(modalMap).forEach(config => {
+      document.getElementById(config.password).addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          const role = Object.keys(modalMap).find(k => modalMap[k] === config);
+          handleLogin(role);
         }
       });
     });
 
-    // Update timestamp
-    document.getElementById('updateTime').textContent = formatDateTime(new Date());
+    // Close modal on background click
+    Object.values(modalMap).forEach((config, idx) => {
+      document.getElementById(config.modal).addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal')) {
+          const role = Object.keys(modalMap).find(k => modalMap[k] === config);
+          closeLoginModal(role);
+        }
+      });
+    });
   </script>
 </body>
 </html>
