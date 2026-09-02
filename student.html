@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Portal · KLE Timetable</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0d1b3e;
+      --navy-2: #182b55;
+      --green: #1f7a4d;
+      --gold: #c9a84c;
+      --ink: #13203c;
+      --muted: #68758f;
+      --line: rgba(13, 27, 62, 0.12);
+      --paper: #ffffff;
+      --soft: #f5f1e8;
+      --shadow: 0 18px 45px rgba(13, 27, 62, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Outfit, system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--soft);
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+
+    button { font: inherit; cursor: pointer; }
+
+    .loading { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: var(--navy); color: white; }
+    .loading.hidden { display: none; }
+    .loading-logo { font-family: "Cormorant Garamond", serif; font-size: 40px; font-weight: 600; }
+    .loading-logo span { color: var(--green); font-style: italic; }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(31, 122, 77, 0.96); color: white;
+      border-bottom: 1px solid rgba(201,168,76,0.24); backdrop-filter: blur(10px);
+    }
+    .topbar-inner {
+      max-width: 1240px; margin: 0 auto; padding: 11px 18px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .brand-name { font-size: 17px; font-weight: 700; }
+    .nav { display: flex; align-items: center; gap: 6px; }
+    .nav button {
+      border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.82); min-height: 34px; border-radius: 8px;
+      padding: 7px 11px; font-size: 13px;
+    }
+    .nav button:hover { background: rgba(255,255,255,0.12); }
+    .logout-btn { background: #c24035 !important; color: white !important; border-color: #c24035 !important; }
+    .logout-btn:hover { background: #a03228 !important; }
+
+    .hero {
+      background: linear-gradient(90deg, rgba(31,122,77,0.97) 0%, rgba(31,122,77,0.88) 42%, rgba(22,86,60,0.7) 100%), var(--green);
+      color: white; padding: 40px 18px; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ""; position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(201,168,76,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,0.07) 1px, transparent 1px);
+      background-size: 48px 48px; mix-blend-mode: screen; opacity: 0.7;
+    }
+    .hero-inner {
+      position: relative; max-width: 1240px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr minmax(280px, 350px);
+      gap: 28px; align-items: center;
+    }
+    .eyebrow { color: rgba(255,255,255,0.8); letter-spacing: 0.14em; text-transform: uppercase; font-size: 11.5px; font-weight: 700; }
+    h1 { font-family: "Cormorant Garamond", serif; font-size: clamp(34px, 5.6vw, 62px); line-height: 0.98; margin: 10px 0; }
+    .hero-copy { color: rgba(255,255,255,0.66); max-width: 660px; line-height: 1.6; font-size: 14.5px; }
+    .live {
+      border: 1px solid rgba(255,255,255,0.2); padding: 18px; border-radius: 10px;
+      background: linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+      box-shadow: 0 18px 46px rgba(0,0,0,0.18);
+    }
+    .live-label { color: rgba(255,255,255,0.5); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; }
+    .live-value { margin-top: 6px; color: white; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+    .notice {
+      border: 1px solid var(--gold); border-left-width: 5px; border-radius: 8px;
+      background: #fffaee; color: #6b5416; padding: 12px 14px; margin-bottom: 16px;
+      font-size: 13.5px; line-height: 1.5;
+    }
+
+    main { max-width: 1240px; margin: 0 auto; padding: 20px 18px 56px; }
+
+    .kpis {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+      gap: 12px; margin-bottom: 18px;
+    }
+    .kpi {
+      border: 1px solid var(--line); background: var(--paper); border-radius: 8px;
+      padding: 15px; min-height: 106px; box-shadow: 0 10px 26px rgba(13,27,62,0.07);
+      position: relative; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease;
+      animation: riseIn 0.45s ease both;
+    }
+    .kpi::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--accent, var(--green)); }
+    .kpi::after { content: ""; position: absolute; width: 88px; height: 88px; right: -40px; bottom: -42px; border-radius: 50%; background: color-mix(in srgb, var(--accent, var(--green)) 15%, transparent); }
+    @keyframes riseIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    .kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .kpi-label { color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; }
+    .kpi-value { font-family: "Cormorant Garamond", serif; font-size: 40px; line-height: 1; margin-top: 8px; color: var(--accent, var(--navy)); }
+
+    .panel {
+      display: none; background: var(--paper); border: 1px solid var(--line);
+      border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 18px;
+    }
+    .panel.active { display: block; }
+    .panel-head {
+      padding: 17px 18px; border-bottom: 1px solid var(--line);
+      display: flex; justify-content: space-between; gap: 12px;
+      align-items: center; flex-wrap: wrap;
+      background: linear-gradient(180deg, #fff, #fbfaf7);
+    }
+    .panel-title { font-size: 19px; font-weight: 700; color: var(--navy); }
+    .panel-sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+    .timetable-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px; padding: 18px;
+    }
+    .day-card {
+      border: 1px solid var(--line); background: linear-gradient(180deg, #fff, #fbfaf7);
+      border-radius: 8px; padding: 14px; min-height: 320px;
+    }
+    .day-card h3 { color: var(--ink); font-size: 14px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--green); }
+    .slot {
+      background: white; border-left: 3px solid var(--green);
+      padding: 10px; margin-bottom: 10px; border-radius: 4px; font-size: 12px;
+    }
+    .slot .time { font-weight: 700; color: var(--ink); }
+    .slot .subject { color: var(--green); font-weight: 600; margin: 4px 0 2px 0; font-size: 11.5px; }
+    .slot .faculty { color: var(--muted); font-size: 11px; }
+    .slot .venue { color: var(--muted); font-size: 11px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 11px 13px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; background: #f7f9fb; position: sticky; top: 0; }
+    tbody tr:hover { background: #fbfcfd; }
+    .table-scroll { max-height: 62vh; overflow: auto; }
+
+    .status { display: inline-flex; border-radius: 999px; padding: 4px 9px; min-height: 23px; font-size: 10.5px; font-weight: 700; background: #edf5ef; color: var(--green); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; height: 40px; display: flex; align-items: center; justify-content: center; gap: 7px; background: var(--navy); color: rgba(255,255,255,0.68); border-top: 1px solid rgba(201,168,76,0.24); font-size: 12px; padding: 0 12px; }
+
+    @media (max-width: 720px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      h1 { font-size: clamp(30px, 10vw, 44px); }
+      table { min-width: 720px; }
+      .table-scroll { overflow-x: auto; }
+    }
+  </style>
+  <script src="auth.js"></script>
+</head>
+<body>
+  <div class="loading" id="loading">
+    <div style="text-align: center;">
+      <div class="loading-logo">Student <span>Portal</span></div>
+      <div style="margin-top: 12px; color: rgba(255,255,255,0.55); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;">Loading your timetable</div>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-name">KLE Timetable · Students</div>
+      <nav class="nav">
+        <button onclick="switchTab(event, 'schedule')">My Schedule</button>
+        <button onclick="switchTab(event, 'subjects')">Subjects</button>
+        <button onclick="switchTab(event, 'faculty')">Faculty</button>
+        <button class="logout-btn" onclick="logout()">Sign out</button>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Student Dashboard</div>
+        <h1>Your Class <em>Timetable</em></h1>
+        <div class="hero-copy">Stay updated with your class schedule, faculty details, and important academic dates. Download your timetable or share it with your parents.</div>
+      </div>
+      <div class="live">
+        <div class="live-label">Your Class</div>
+        <div class="live-value" id="className">Loading...</div>
+        <div class="live-label" style="margin-top: 14px;">Roll Number</div>
+        <div class="live-value" id="rollNumber">--</div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <div class="notice">
+      <strong>📢 Notice:</strong> Classes resume on 02-Sep-2026. Check your timetable below for any venue changes. Contact your class advisor for clarifications.
+    </div>
+
+    <div class="kpis">
+      <div class="kpi" style="--accent: var(--green);">
+        <div class="kpi-label">Your Class</div>
+        <div class="kpi-value">1 CSE-A</div>
+      </div>
+      <div class="kpi" style="--accent: #226da8;">
+        <div class="kpi-label">Total Subjects</div>
+        <div class="kpi-value">4</div>
+      </div>
+      <div class="kpi" style="--accent: #8a6500;">
+        <div class="kpi-label">Class Hours/Week</div>
+        <div class="kpi-value">20</div>
+      </div>
+      <div class="kpi" style="--accent: #7251a5;">
+        <div class="kpi-label">Faculty Members</div>
+        <div class="kpi-value">4</div>
+      </div>
+    </div>
+
+    <section class="panel active">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Weekly Class Schedule</div>
+          <div class="panel-sub">Your timetable for the current week</div>
+        </div>
+      </div>
+      <div class="timetable-grid">
+        <div class="day-card">
+          <h3>Monday</h3>
+          <div class="slot">
+            <div class="time">09:00 - 09:50 AM</div>
+            <div class="subject">Data Structures</div>
+            <div class="faculty">👨‍🏫 Deepa B</div>
+            <div class="venue">📍 MB2-206</div>
+          </div>
+          <div class="slot">
+            <div class="time">09:50 - 10:40 AM</div>
+            <div class="subject">Web Technologies</div>
+            <div class="faculty">👨‍🏫 Nandish H</div>
+            <div class="venue">📍 MB2-209</div>
+          </div>
+          <div class="slot">
+            <div class="time">10:50 - 11:40 AM</div>
+            <div class="subject">Operating Systems</div>
+            <div class="faculty">👨‍🏫 Dr. Sharma</div>
+            <div class="venue">📍 LT-101</div>
+          </div>
+        </div>
+
+        <div class="day-card">
+          <h3>Tuesday</h3>
+          <div class="slot">
+            <div class="time">09:00 - 09:50 AM</div>
+            <div class="subject">Data Structures</div>
+            <div class="faculty">👨‍🏫 Deepa B</div>
+            <div class="venue">📍 MB2-206</div>
+          </div>
+          <div class="slot">
+            <div class="time">11:40 AM - 12:30 PM</div>
+            <div class="subject">Database Management</div>
+            <div class="faculty">👨‍🏫 Prof. Singh</div>
+            <div class="venue">📍 MB2-209</div>
+          </div>
+          <div class="slot">
+            <div class="time">02:05 - 02:55 PM</div>
+            <div class="subject">Lab - Data Structures</div>
+            <div class="faculty">👨‍🏫 Deepa B</div>
+            <div class="venue">📍 Lab-201</div>
+          </div>
+        </div>
+
+        <div class="day-card">
+          <h3>Wednesday</h3>
+          <div class="slot">
+            <div class="time">09:50 - 10:40 AM</div>
+            <div class="subject">Web Technologies</div>
+            <div class="faculty">👨‍🏫 Nandish H</div>
+            <div class="venue">📍 MB2-206</div>
+          </div>
+          <div class="slot">
+            <div class="time">10:50 - 11:40 AM</div>
+            <div class="subject">Operating Systems</div>
+            <div class="faculty">👨‍🏫 Dr. Sharma</div>
+            <div class="venue">📍 LT-101</div>
+          </div>
+          <div class="slot">
+            <div class="time">01:15 - 02:05 PM</div>
+            <div class="subject">Database Management</div>
+            <div class="faculty">👨‍🏫 Prof. Singh</div>
+            <div class="venue">📍 MB2-209</div>
+          </div>
+        </div>
+
+        <div class="day-card">
+          <h3>Thursday</h3>
+          <div class="slot">
+            <div class="time">09:00 - 09:50 AM</div>
+            <div class="subject">Web Technologies</div>
+            <div class="faculty">👨‍🏫 Nandish H</div>
+            <div class="venue">📍 MB2-206</div>
+          </div>
+          <div class="slot">
+            <div class="time">10:50 - 11:40 AM</div>
+            <div class="subject">Operating Systems</div>
+            <div class="faculty">👨‍🏫 Dr. Sharma</div>
+            <div class="venue">📍 LT-101</div>
+          </div>
+          <div class="slot">
+            <div class="time">02:05 - 02:55 PM</div>
+            <div class="subject">Lab - Web Technologies</div>
+            <div class="faculty">👨‍🏫 Nandish H</div>
+            <div class="venue">📍 Lab-202</div>
+          </div>
+        </div>
+
+        <div class="day-card">
+          <h3>Friday</h3>
+          <div class="slot">
+            <div class="time">09:00 - 09:50 AM</div>
+            <div class="subject">Data Structures</div>
+            <div class="faculty">👨‍🏫 Deepa B</div>
+            <div class="venue">📍 MB2-206</div>
+          </div>
+          <div class="slot">
+            <div class="time">11:40 AM - 12:30 PM</div>
+            <div class="subject">Database Management</div>
+            <div class="faculty">👨‍🏫 Prof. Singh</div>
+            <div class="venue">📍 MB2-209</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Your Subjects</div>
+          <div class="panel-sub">Courses enrolled this semester</div>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Subject Name</th>
+              <th>Faculty</th>
+              <th>Credits</th>
+              <th>Type</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>15CS31</td>
+              <td>Data Structures</td>
+              <td>Deepa B</td>
+              <td>4</td>
+              <td>Theory + Lab</td>
+              <td><span class="status">Ongoing</span></td>
+            </tr>
+            <tr>
+              <td>15CS32</td>
+              <td>Web Technologies</td>
+              <td>Nandish H</td>
+              <td>3</td>
+              <td>Theory + Lab</td>
+              <td><span class="status">Ongoing</span></td>
+            </tr>
+            <tr>
+              <td>15CS33</td>
+              <td>Operating Systems</td>
+              <td>Dr. Sharma</td>
+              <td>4</td>
+              <td>Theory + Lab</td>
+              <td><span class="status">Ongoing</span></td>
+            </tr>
+            <tr>
+              <td>15CS34</td>
+              <td>Database Management</td>
+              <td>Prof. Singh</td>
+              <td>4</td>
+              <td>Theory + Lab</td>
+              <td><span class="status">Ongoing</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Faculty Directory</div>
+          <div class="panel-sub">Your faculty members and office hours</div>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Faculty</th>
+              <th>Subject</th>
+              <th>Email</th>
+              <th>Office Hours</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Deepa B</td>
+              <td>Data Structures</td>
+              <td>deepa.b@kletech.ac.in</td>
+              <td>Mon-Fri, 3:00 PM - 4:00 PM</td>
+            </tr>
+            <tr>
+              <td>Nandish H</td>
+              <td>Web Technologies</td>
+              <td>nandish.h@kletech.ac.in</td>
+              <td>Mon-Fri, 2:00 PM - 3:00 PM</td>
+            </tr>
+            <tr>
+              <td>Dr. Sharma</td>
+              <td>Operating Systems</td>
+              <td>sharma@kletech.ac.in</td>
+              <td>Tue-Thu, 3:00 PM - 4:00 PM</td>
+            </tr>
+            <tr>
+              <td>Prof. Singh</td>
+              <td>Database Management</td>
+              <td>singh@kletech.ac.in</td>
+              <td>Mon-Wed, 4:00 PM - 5:00 PM</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>KLE Timetable Portal v1.0.0</span> · <span>Student Portal</span> · <span>Last updated <span id="footerTime">--</span></span>
+  </footer>
+
+  <script>
+    if (!initAuth(AUTH.STUDENT)) {
+      // Redirect happens automatically
+    }
+
+    document.getElementById('loading').classList.add('hidden');
+
+    document.getElementById('className').textContent = '1st Year CSE-A';
+    document.getElementById('rollNumber').textContent = '1KL21CS001';
+
+    function updateTime() {
+      const now = formatDateTime(new Date());
+      document.getElementById('footerTime').textContent = now;
+    }
+
+    function switchTab(evt, tabName) {
+      const panels = document.querySelectorAll('.panel');
+      const buttons = document.querySelectorAll('.nav button');
+
+      panels.forEach(p => p.classList.remove('active'));
+      buttons.forEach(b => b.classList.remove('active'));
+
+      const index = ['schedule', 'subjects', 'faculty'].indexOf(tabName);
+      if (index >= 0) {
+        panels[index].classList.add('active');
+      }
+
+      evt.target.classList.add('active');
+    }
+
+    updateTime();
+    setInterval(updateTime, 60000);
+  </script>
+</body>
+</html>
