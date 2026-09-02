@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KLE Timetable Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0d1b3e;
+      --navy-2: #182b55;
+      --gold: #c9a84c;
+      --gold-2: #ead282;
+      --ink: #13203c;
+      --muted: #68758f;
+      --line: rgba(13, 27, 62, 0.12);
+      --paper: #ffffff;
+      --soft: #f5f1e8;
+      --shadow: 0 18px 45px rgba(13, 27, 62, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Outfit, system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--soft);
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+
+    button { font: inherit; cursor: pointer; }
+
+    .hero {
+      background:
+        linear-gradient(90deg, rgba(13,27,62,0.97) 0%, rgba(13,27,62,0.88) 42%, rgba(24,43,85,0.7) 100%),
+        var(--navy);
+      color: white; position: relative; overflow: hidden; padding: 60px 18px;
+    }
+    .hero::before {
+      content: ""; position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.07) 1px, transparent 1px);
+      background-size: 48px 48px; mix-blend-mode: screen; opacity: 0.7;
+    }
+    .hero-inner {
+      position: relative; max-width: 1240px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr minmax(280px, 350px);
+      gap: 28px; align-items: center;
+    }
+    .eyebrow {
+      color: var(--gold-2); letter-spacing: 0.14em; text-transform: uppercase;
+      font-size: 11.5px; font-weight: 700;
+    }
+    h1 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(34px, 5.6vw, 62px);
+      line-height: 0.98; margin: 10px 0; max-width: 780px;
+    }
+    h1 em { color: var(--gold-2); font-style: italic; }
+    .hero-copy { color: rgba(255,255,255,0.66); max-width: 660px; line-height: 1.6; font-size: 14.5px; }
+    .live {
+      border: 1px solid rgba(201,168,76,0.3); padding: 18px; border-radius: 10px; min-width: 0;
+      background:
+        linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)),
+        radial-gradient(circle at top right, rgba(201,168,76,0.18), transparent 48%);
+      box-shadow: 0 18px 46px rgba(0,0,0,0.18);
+    }
+    .live-label {
+      color: rgba(255,255,255,0.5); font-size: 10.5px;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .live-value {
+      margin-top: 6px; color: var(--gold-2);
+      font-family: "JetBrains Mono", monospace; font-size: 12px;
+    }
+    .live-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: #37d47e; margin-right: 7px; vertical-align: 1px;
+      box-shadow: 0 0 0 3px rgba(55,212,126,0.22); animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(0.78); opacity: 0.65; }
+      50% { transform: scale(1); opacity: 1; }
+    }
+
+    main { max-width: 1240px; margin: 0 auto; padding: 20px 18px 56px; }
+
+    .portals {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px; margin-bottom: 18px;
+    }
+    .portal-card {
+      border: 1px solid var(--line); background: var(--paper); border-radius: 8px;
+      padding: 18px; box-shadow: 0 10px 26px rgba(13,27,62,0.07);
+      text-align: center; position: relative; overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      animation: riseIn 0.45s ease both;
+    }
+    .portal-card::before {
+      content: ""; position: absolute; inset: 0 0 auto 0; height: 4px;
+      background: var(--accent, var(--gold));
+    }
+    .portal-card::after {
+      content: ""; position: absolute; width: 88px; height: 88px;
+      right: -40px; bottom: -42px; border-radius: 50%;
+      background: color-mix(in srgb, var(--accent, var(--gold)) 15%, transparent);
+    }
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .portal-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .portal-icon { font-size: 48px; margin-bottom: 12px; }
+    .portal-title { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+    .portal-desc { color: var(--muted); font-size: 12.5px; line-height: 1.5; margin-bottom: 12px; }
+    .portal-users { color: var(--muted); font-size: 11px; margin-bottom: 12px; }
+
+    .btn {
+      display: inline-block; padding: 9px 16px; border: 1px solid var(--line);
+      background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.82); border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn:hover { background: rgba(255,255,255,0.12); }
+    .btn-primary {
+      border-color: var(--gold); background: var(--gold); color: var(--navy);
+    }
+    .btn-primary:hover { background: #b8951f; }
+
+    .notice {
+      border: 1px solid var(--gold); border-left-width: 5px; border-radius: 8px;
+      background: #fffaee; color: #6b5416; padding: 12px 14px; margin-bottom: 16px;
+      font-size: 13.5px; line-height: 1.5;
+    }
+
+    .footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; height: 40px; display: flex; align-items: center; justify-content: center; gap: 7px; background: var(--navy); color: rgba(255,255,255,0.68); border-top: 1px solid rgba(201,168,76,0.24); font-size: 12px; padding: 0 12px; }
+
+    .login-modal { position: fixed; inset: 0; z-index: 50; display: none; place-items: center; background: linear-gradient(135deg, rgba(13,27,62,0.96), rgba(24,43,85,0.92)), radial-gradient(circle at 20% 20%, rgba(201,168,76,0.18), transparent 30%); color: white; padding: 20px; }
+    .login-modal.show { display: grid; }
+    .login-card {
+      width: min(440px, 100%);
+      border: 1px solid rgba(201,168,76,0.32); border-radius: 10px;
+      background: rgba(255,255,255,0.08); box-shadow: 0 28px 70px rgba(0,0,0,0.24);
+      padding: 24px; backdrop-filter: blur(14px);
+    }
+    .login-title { font-family: "Cormorant Garamond", serif; font-size: 34px; line-height: 1.05; }
+    .login-title span { color: var(--gold-2); font-style: italic; }
+    .login-copy { color: rgba(255,255,255,0.62); margin: 10px 0 18px; line-height: 1.55; font-size: 13.5px; }
+    .login-card .field {
+      width: 100%; background: rgba(255,255,255,0.95); border: none; border-radius: 8px;
+      padding: 9px 11px; min-height: 38px; color: var(--ink); margin-bottom: 10px;
+    }
+    .login-actions {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; margin-top: 14px;
+    }
+    .login-error { color: #ffb8b8; min-height: 18px; font-size: 13px; }
+
+    @media (max-width: 720px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      h1 { font-size: clamp(30px, 10vw, 44px); }
+      .portals { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script src="auth.js"></script>
+</head>
+<body>
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">KLE-C-SHInE, Hubballi</div>
+        <h1>KLE Timetable <em>Portal</em></h1>
+        <div class="hero-copy">
+          Manage class schedules, faculty assignments, and student timetables. Complete oversight with real-time data and conflict detection.
+        </div>
+      </div>
+      <div class="live">
+        <div class="live-label">System Status</div>
+        <div class="live-value"><span class="live-dot"></span>OPERATIONAL</div>
+        <div class="live-label" style="margin-top: 14px;">Institution</div>
+        <div class="live-value">KLE TU, Hubballi</div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <div class="notice">
+      <strong>📢 Welcome:</strong> Select your role below to access the portal. All portals are password protected for security.
+    </div>
+
+    <div class="portals">
+      <div class="portal-card" style="--accent: var(--gold);">
+        <div class="portal-icon">👨‍💼</div>
+        <div class="portal-title">Admin Console</div>
+        <div class="portal-desc">Complete system oversight, faculty management, and conflict detection.</div>
+        <div class="portal-users">Administrators Only</div>
+        <button class="btn btn-primary" onclick="openLogin('admin')">🔐 Admin Login</button>
+      </div>
+
+      <div class="portal-card" style="--accent: #1b8a9a;">
+        <div class="portal-icon">👨‍🏫</div>
+        <div class="portal-title">Faculty Portal</div>
+        <div class="portal-desc">View assigned classes, manage schedules, and track teaching load.</div>
+        <div class="portal-users">All Faculty Members</div>
+        <button class="btn btn-primary" onclick="openLogin('faculty')">🔐 Faculty Login</button>
+      </div>
+
+      <div class="portal-card" style="--accent: #1f7a4d;">
+        <div class="portal-icon">👨‍🎓</div>
+        <div class="portal-title">Student Portal</div>
+        <div class="portal-desc">Check class timetable, faculty details, and academic information.</div>
+        <div class="portal-users">All Students</div>
+        <button class="btn btn-primary" onclick="openLogin('student')">🔐 Student Login</button>
+      </div>
+    </div>
+  </main>
+
+  <div class="login-modal" id="loginModal">
+    <div class="login-card">
+      <div class="login-title">KLE <span id="roleTitle">Portal</span></div>
+      <div class="login-copy">
+        Enter your password to access the <span id="roleText">admin</span> portal. All sessions are encrypted and secure.
+      </div>
+      <input type="password" class="field" id="loginPassword" placeholder="Enter password" autocomplete="current-password" />
+      <div class="login-actions">
+        <div class="login-error" id="loginError"></div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn" id="cancelBtn" onclick="closeLogin()">Back</button>
+          <button class="btn btn-primary" id="submitBtn" onclick="submitLogin()">Sign In</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span>KLE Timetable Portal v1.0.0</span> · <span>Powered by Google Sheets & Apps Script</span> · <span>© 2026 KLE Technological University</span>
+  </footer>
+
+  <script>
+    let currentRole = null;
+
+    const PORTALS = {
+      admin: { title: 'Admin', text: 'admin', url: 'admin.html' },
+      faculty: { title: 'Faculty', text: 'faculty', url: 'faculty.html' },
+      student: { title: 'Student', text: 'student', url: 'student.html' }
+    };
+
+    function openLogin(role) {
+      currentRole = role;
+      const portal = PORTALS[role];
+
+      document.getElementById('roleTitle').textContent = portal.title;
+      document.getElementById('roleText').textContent = portal.text;
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('loginError').textContent = '';
+      document.getElementById('loginModal').classList.add('show');
+      document.getElementById('loginPassword').focus();
+    }
+
+    function closeLogin() {
+      document.getElementById('loginModal').classList.remove('show');
+      currentRole = null;
+    }
+
+    function submitLogin() {
+      if (!currentRole) return;
+
+      const password = document.getElementById('loginPassword').value;
+      const errorEl = document.getElementById('loginError');
+
+      if (!password) {
+        errorEl.textContent = 'Please enter password';
+        return;
+      }
+
+      if (login(currentRole, password)) {
+        window.location.href = PORTALS[currentRole].url;
+      } else {
+        errorEl.textContent = 'Incorrect password';
+        document.getElementById('loginPassword').select();
+      }
+    }
+
+    document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') submitLogin();
+    });
+
+    document.getElementById('loginModal').addEventListener('click', function(e) {
+      if (e.target === this) closeLogin();
+    });
+
+    // Default passwords displayed for demo
+    console.log('Demo Passwords:');
+    console.log('Admin: admin@kletech2026');
+    console.log('Faculty: faculty@kletech2026');
+    console.log('Student: student@kletech2026');
+  </script>
+</body>
+</html>
