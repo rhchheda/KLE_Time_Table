@@ -1,0 +1,63 @@
+# Python scripts
+*.py
+
+# Google Apps Script
+*.gs
+
+# Office documents
+*.docx
+*.xlsx
+*.pptx
+*.pdf
+
+# Project folders
+KLE-Timetable-Project/
+csv_export/
+
+# Reference files
+SAMPLE_SHEET_SETUP.md
+GITHUB_DEPLOYMENT.md
+index-NEW.html
+
+# System files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Node modules (if added later)
+node_modules/
+package-lock.json
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# Build artifacts
+dist/
+build/
+.cache/
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode
+.idea
+*.iml
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
