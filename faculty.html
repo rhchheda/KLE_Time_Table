@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faculty Portal · KLE Timetable</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0d1b3e;
+      --navy-2: #182b55;
+      --teal: #1b8a9a;
+      --gold: #c9a84c;
+      --ink: #13203c;
+      --muted: #68758f;
+      --line: rgba(13, 27, 62, 0.12);
+      --paper: #ffffff;
+      --soft: #f5f1e8;
+      --green: #1f7a4d;
+      --shadow: 0 18px 45px rgba(13, 27, 62, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Outfit, system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--soft);
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+
+    button { font: inherit; cursor: pointer; }
+
+    .loading { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: var(--navy); color: white; }
+    .loading.hidden { display: none; }
+    .loading-logo { font-family: "Cormorant Garamond", serif; font-size: 40px; font-weight: 600; }
+    .loading-logo span { color: var(--teal); font-style: italic; }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(27, 138, 154, 0.96); color: white;
+      border-bottom: 1px solid rgba(201,168,76,0.24); backdrop-filter: blur(10px);
+    }
+    .topbar-inner {
+      max-width: 1240px; margin: 0 auto; padding: 11px 18px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .brand-name { font-size: 17px; font-weight: 700; }
+    .nav { display: flex; align-items: center; gap: 6px; }
+    .nav button {
+      border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.82); min-height: 34px; border-radius: 8px;
+      padding: 7px 11px; font-size: 13px;
+    }
+    .nav button:hover { background: rgba(255,255,255,0.12); }
+    .logout-btn { background: #c24035 !important; color: white !important; border-color: #c24035 !important; }
+    .logout-btn:hover { background: #a03228 !important; }
+
+    .hero {
+      background: linear-gradient(90deg, rgba(27,138,154,0.97) 0%, rgba(27,138,154,0.88) 42%, rgba(19,119,136,0.7) 100%), var(--teal);
+      color: white; padding: 40px 18px; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ""; position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(201,168,76,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,0.07) 1px, transparent 1px);
+      background-size: 48px 48px; mix-blend-mode: screen; opacity: 0.7;
+    }
+    .hero-inner {
+      position: relative; max-width: 1240px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr minmax(280px, 350px);
+      gap: 28px; align-items: center;
+    }
+    .eyebrow { color: rgba(255,255,255,0.8); letter-spacing: 0.14em; text-transform: uppercase; font-size: 11.5px; font-weight: 700; }
+    h1 { font-family: "Cormorant Garamond", serif; font-size: clamp(34px, 5.6vw, 62px); line-height: 0.98; margin: 10px 0; }
+    .hero-copy { color: rgba(255,255,255,0.66); max-width: 660px; line-height: 1.6; font-size: 14.5px; }
+    .live {
+      border: 1px solid rgba(255,255,255,0.2); padding: 18px; border-radius: 10px;
+      background: linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+      box-shadow: 0 18px 46px rgba(0,0,0,0.18);
+    }
+    .live-label { color: rgba(255,255,255,0.5); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; }
+    .live-value { margin-top: 6px; color: white; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+    main { max-width: 1240px; margin: 0 auto; padding: 20px 18px 56px; }
+
+    .kpis {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+      gap: 12px; margin-bottom: 18px;
+    }
+    .kpi {
+      border: 1px solid var(--line); background: var(--paper); border-radius: 8px;
+      padding: 15px; min-height: 106px; box-shadow: 0 10px 26px rgba(13,27,62,0.07);
+      position: relative; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease;
+      animation: riseIn 0.45s ease both;
+    }
+    .kpi::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--accent, var(--teal)); }
+    .kpi::after { content: ""; position: absolute; width: 88px; height: 88px; right: -40px; bottom: -42px; border-radius: 50%; background: color-mix(in srgb, var(--accent, var(--teal)) 15%, transparent); }
+    @keyframes riseIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    .kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .kpi-label { color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; }
+    .kpi-value { font-family: "Cormorant Garamond", serif; font-size: 40px; line-height: 1; margin-top: 8px; color: var(--accent, var(--navy)); }
+
+    .panel {
+      display: none; background: var(--paper); border: 1px solid var(--line);
+      border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 18px;
+    }
+    .panel.active { display: block; }
+    .panel-head {
+      padding: 17px 18px; border-bottom: 1px solid var(--line);
+      display: flex; justify-content: space-between; gap: 12px;
+      align-items: center; flex-wrap: wrap;
+      background: linear-gradient(180deg, #fff, #fbfaf7);
+    }
+    .panel-title { font-size: 19px; font-weight: 700; color: var(--navy); }
+    .panel-sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+    .timetable-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px; padding: 18px;
+    }
+    .day-card {
+      border: 1px solid var(--line); background: linear-gradient(180deg, #fff, #fbfaf7);
+      border-radius: 8px; padding: 14px; min-height: 280px;
+    }
+    .day-card h3 { color: var(--ink); font-size: 14px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--teal); }
+    .slot {
+      background: white; border-left: 3px solid var(--teal);
+      padding: 10px; margin-bottom: 10px; border-radius: 4px; font-size: 12px;
+    }
+    .slot .time { font-weight: 700; color: var(--ink); }
+    .slot .class { color: var(--teal); font-weight: 600; margin: 4px 0 2px 0; font-size: 11.5px; }
+    .slot .venue { color: var(--muted); font-size: 11px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 11px 13px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; background: #f7f9fb; position: sticky; top: 0; }
+    tbody tr:hover { background: #fbfcfd; }
+    .table-scroll { max-height: 62vh; overflow: auto; }
+
+    .status { display: inline-flex; border-radius: 999px; padding: 4px 9px; min-height: 23px; font-size: 10.5px; font-weight: 700; background: #edf5ef; color: var(--green); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; height: 40px; display: flex; align-items: center; justify-content: center; gap: 7px; background: var(--navy); color: rgba(255,255,255,0.68); border-top: 1px solid rgba(201,168,76,0.24); font-size: 12px; padding: 0 12px; }
+
+    @media (max-width: 720px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      h1 { font-size: clamp(30px, 10vw, 44px); }
+      table { min-width: 720px; }
+      .table-scroll { overflow-x: auto; }
+    }
+  </style>
+  <script src="auth.js"></script>
+</head>
+<body>
+  <div class="loading" id="loading">
+    <div style="text-align: center;">
+      <div class="loading-logo">Faculty <span>Portal</span></div>
+      <div style="margin-top: 12px; color: rgba(255,255,255,0.55); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;">Loading schedule</div>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-name">KLE Timetable · Faculty</div>
+      <nav class="nav">
+        <button onclick="switchTab(event, 'schedule')">My Schedule</button>
+        <button onclick="switchTab(event, 'classes')">Classes</button>
+        <button onclick="switchTab(event, 'load')">Teaching Load</button>
+        <button class="logout-btn" onclick="logout()">Sign out</button>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Faculty Dashboard</div>
+        <h1>Your Class <em>Schedule</em></h1>
+        <div class="hero-copy">View assigned classes, manage schedules, and track your weekly teaching load across all departments.</div>
+      </div>
+      <div class="live">
+        <div class="live-label">Faculty</div>
+        <div class="live-value" id="facultyName">Loading...</div>
+        <div class="live-label" style="margin-top: 14px;">Last Updated</div>
+        <div class="live-value" id="liveTime">--:-- --</div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <div class="kpis">
+      <div class="kpi" style="--accent: var(--teal);">
+        <div class="kpi-label">Assigned Classes</div>
+        <div class="kpi-value">4</div>
+      </div>
+      <div class="kpi" style="--accent: var(--green);">
+        <div class="kpi-label">Total Students</div>
+        <div class="kpi-value">238</div>
+      </div>
+      <div class="kpi" style="--accent: #226da8;">
+        <div class="kpi-label">Teaching Hours/Week</div>
+        <div class="kpi-value">12/20</div>
+      </div>
+      <div class="kpi" style="--accent: #7251a5;">
+        <div class="kpi-label">Subjects</div>
+        <div class="kpi-value">3</div>
+      </div>
+    </div>
+
+    <section class="panel active">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Weekly Timetable</div>
+          <div class="panel-sub">Your class schedule for this week</div>
+        </div>
+      </div>
+      <div class="timetable-grid">
+        <div class="day-card">
+          <h3>Monday</h3>
+          <div class="slot">
+            <div class="time">09:00 - 09:50 AM</div>
+            <div class="class">Data Structures (1st CSE-A)</div>
+            <div class="venue">📍 MB2-206</div>
+          </div>
+          <div class="slot">
+            <div class="time">11:40 AM - 12:30 PM</div>
+            <div class="class">Database Mgmt (2nd CSE-A)</div>
+            <div class="venue">📍 MB2-209</div>
+          </div>
+        </div>
+
+        <div class="day-card">
+          <h3>Tuesday</h3>
+          <div class="slot">
+            <div class="time">10:50 - 11:40 AM</div>
+            <div class="class">Data Structures (1st CSE-B)</div>
+            <div class="venue">📍 LT-101</div>
+          </div>
+          <div class="slot">
+            <div class="time">02:05 - 02:55 PM</div>
+            <div class="class">Lab - Data Structures</div>
+            <div class="venue">📍 Lab-201</div>
+          </div>
+        </div>
+
+        <div class="day-card">
+          <h3>Wednesday</h3>
+          <div class="slot">
+            <div class="time">09:50 - 10:40 AM</div>
+            <div class="class">Web Technologies (1st CSE-A)</div>
+            <div class="venue">📍 MB2-206</div>
+          </div>
+          <div class="slot">
+            <div class="time">01:15 - 02:05 PM</div>
+            <div class="class">Database Mgmt (2nd CSE-B)</div>
+            <div class="venue">📍 MB2-209</div>
+          </div>
+        </div>
+
+        <div class="day-card">
+          <h3>Thursday</h3>
+          <div class="slot">
+            <div class="time">10:50 - 11:40 AM</div>
+            <div class="class">Operating Systems (1st CSE-B)</div>
+            <div class="venue">📍 LT-101</div>
+          </div>
+          <div class="slot">
+            <div class="time">02:05 - 02:55 PM</div>
+            <div class="class">Lab - Web Tech (1st CSE-B)</div>
+            <div class="venue">📍 Lab-202</div>
+          </div>
+        </div>
+
+        <div class="day-card">
+          <h3>Friday</h3>
+          <div class="slot">
+            <div class="time">09:00 - 09:50 AM</div>
+            <div class="class">Operating Systems (1st CSE-A)</div>
+            <div class="venue">📍 LT-101</div>
+          </div>
+          <div class="slot">
+            <div class="time">11:40 AM - 12:30 PM</div>
+            <div class="class">Database Mgmt (1st CSE-A)</div>
+            <div class="venue">📍 MB2-206</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Assigned Classes</div>
+          <div class="panel-sub">Classes and their student strength</div>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th>Subject</th>
+              <th>Strength</th>
+              <th>Sessions/Week</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1st Year CSE-A</td>
+              <td>Data Structures</td>
+              <td>60</td>
+              <td>3T + 1L</td>
+              <td><span class="status">Active</span></td>
+            </tr>
+            <tr>
+              <td>1st Year CSE-B</td>
+              <td>Data Structures</td>
+              <td>55</td>
+              <td>3T + 1L</td>
+              <td><span class="status">Active</span></td>
+            </tr>
+            <tr>
+              <td>1st Year CSE-A</td>
+              <td>Web Technologies</td>
+              <td>60</td>
+              <td>2T + 1L</td>
+              <td><span class="status">Active</span></td>
+            </tr>
+            <tr>
+              <td>2nd Year CSE-A</td>
+              <td>Database Management</td>
+              <td>58</td>
+              <td>3T + 1L</td>
+              <td><span class="status">Active</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Teaching Load Summary</div>
+          <div class="panel-sub">Weekly hours breakdown by subject</div>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Classes</th>
+              <th>Students</th>
+              <th>Theory Hrs</th>
+              <th>Lab Hrs</th>
+              <th>Total/Week</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Data Structures</strong></td>
+              <td>2</td>
+              <td>115</td>
+              <td>6</td>
+              <td>2</td>
+              <td>8</td>
+            </tr>
+            <tr>
+              <td><strong>Web Technologies</strong></td>
+              <td>1</td>
+              <td>60</td>
+              <td>2</td>
+              <td>1</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td><strong>Database Management</strong></td>
+              <td>1</td>
+              <td>58</td>
+              <td>3</td>
+              <td>1</td>
+              <td>4</td>
+            </tr>
+            <tr style="background: #fbfcfd; font-weight: 700;">
+              <td colspan="4" style="text-align: right;">TOTAL WEEKLY LOAD:</td>
+              <td>5</td>
+              <td>15</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>KLE Timetable Portal v1.0.0</span> · <span>Faculty Portal</span> · <span>Last updated <span id="footerTime">--</span></span>
+  </footer>
+
+  <script>
+    if (!initAuth(AUTH.FACULTY)) {
+      // Redirect happens automatically
+    }
+
+    document.getElementById('loading').classList.add('hidden');
+
+    const faculty = getCurrentUser();
+    if (faculty) {
+      document.getElementById('facultyName').textContent = faculty.name;
+    }
+
+    function updateTime() {
+      const now = formatDateTime(new Date());
+      document.getElementById('liveTime').textContent = now;
+      document.getElementById('footerTime').textContent = now;
+    }
+
+    function switchTab(evt, tabName) {
+      const panels = document.querySelectorAll('.panel');
+      const buttons = document.querySelectorAll('.nav button');
+
+      panels.forEach(p => p.classList.remove('active'));
+      buttons.forEach(b => b.classList.remove('active'));
+
+      const index = ['schedule', 'classes', 'load'].indexOf(tabName);
+      if (index >= 0) {
+        panels[index].classList.add('active');
+      }
+
+      evt.target.classList.add('active');
+    }
+
+    updateTime();
+    setInterval(updateTime, 60000);
+  </script>
+</body>
+</html>
