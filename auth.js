@@ -1,11 +1,11 @@
 /**
  * ============================================
- * Authentication & Authorization Module - PRODUCTION
- * KLE Timetable Portal
+ * Authentication & Authorization Module
+ * KLE Timetable Portal - Production
  * ============================================
  *
- * DO NOT commit demo credentials to GitHub
- * Fetch passwords from Google Apps Script backend
+ * Connects to Google Apps Script backend
+ * Verifies passwords from Google Sheets CREDENTIALS sheet
  */
 
 const AUTH = {
@@ -14,17 +14,14 @@ const AUTH = {
   STUDENT: 'student'
 };
 
-// Configuration - UPDATE THIS WITH YOUR GAS URL
+// CONFIGURATION - SET YOUR GAS URL HERE
 const CONFIG = {
-  // Deploy Main.gs as Web App and paste URL here
-  GAS_URL: 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec',
+  // Deploy Main.gs as Web App
+  // Then paste deployment URL here:
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwGjJJyBwDNCfF_Mu06v1AZdvvFT82sFXT2_bHNXBmXKmQCxiWNZmaSSGXcp7Jyafoh/exec',
 
-  // Session timeout in milliseconds (1 hour)
-  SESSION_TIMEOUT: 3600000,
-
-  // PRODUCTION MODE - Set to true only for local development/testing
-  // For production: user must configure GAS_URL and leave DEMO_MODE as false
-  DEMO_MODE: false
+  // Session timeout: 1 hour (milliseconds)
+  SESSION_TIMEOUT: 3600000
 };
 
 // Initialize authentication on page load
@@ -36,9 +33,9 @@ function initAuth(requiredRole) {
     return false;
   }
 
-  // Check session timeout (1 hour)
+  // Check session timeout
   const now = Date.now();
-  if (now - auth.timestamp > 3600000) {
+  if (now - auth.timestamp > CONFIG.SESSION_TIMEOUT) {
     logout();
     redirectToLogin(requiredRole);
     return false;
@@ -70,17 +67,18 @@ function logout() {
 
 function redirectToLogin(requiredRole) {
   sessionStorage.removeItem('kle_auth');
-  window.location.href = `index.html?role=${requiredRole}&redirect=${window.location.pathname}`;
+  window.location.href = `index.html?role=${requiredRole}`;
 }
 
 /**
- * Production: Verify password via Google Apps Script
- * Demo: Check against hardcoded credentials
+ * Login function - Verifies password via Google Apps Script
+ * Reads from CREDENTIALS sheet in Google Sheets
  */
 async function login(role, password) {
-  // PRODUCTION MODE - Verify via Google Apps Script
+  // Check if GAS_URL is configured
   if (!CONFIG.GAS_URL || CONFIG.GAS_URL === 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec') {
-    console.error('Auth error: GAS_URL not configured. Configure CONFIG.GAS_URL in auth.js');
+    console.error('ERROR: CONFIG.GAS_URL not configured in auth.js');
+    alert('System not configured. Please set GAS_URL in auth.js');
     return false;
   }
 
@@ -96,24 +94,19 @@ async function login(role, password) {
     });
 
     const result = await response.json();
-    if (!result.ok) return false;
+
+    if (!result.ok) {
+      return false;
+    }
+
+    // Store authenticated user in session
+    let userDetails = { name: result.name || role, id: result.id || 'USER001' };
+    setAuth(role, userDetails);
+    return true;
   } catch (error) {
     console.error('Auth error:', error);
     return false;
   }
-
-  // Get user details
-  let userDetails = {};
-  if (role === 'admin') {
-    userDetails = { name: 'Administrator', id: 'ADMIN001' };
-  } else if (role === 'faculty') {
-    userDetails = { name: 'Deepa B', id: 'F001' };
-  } else if (role === 'student') {
-    userDetails = { name: '1st Year CSE-A', id: '1KL21CS001' };
-  }
-
-  setAuth(role, userDetails);
-  return true;
 }
 
 function getCurrentUser() {
