@@ -17,18 +17,14 @@ const AUTH = {
 // Configuration - UPDATE THIS WITH YOUR GAS URL
 const CONFIG = {
   // Deploy Main.gs as Web App and paste URL here
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbwGjJJyBwDNCfF_Mu06v1AZdvvFT82sFXT2_bHNXBmXKmQCxiWNZmaSSGXcp7Jyafoh/exec',
+  GAS_URL: 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec',
 
   // Session timeout in milliseconds (1 hour)
   SESSION_TIMEOUT: 3600000,
 
-  // For DEMO ONLY - Set to false in production
-  DEMO_MODE: false,
-  DEMO_CREDENTIALS: {
-    admin: 'admin@kletech2026',
-    faculty: 'faculty@kletech2026',
-    student: 'student@kletech2026'
-  }
+  // PRODUCTION MODE - Set to true only for local development/testing
+  // For production: user must configure GAS_URL and leave DEMO_MODE as false
+  DEMO_MODE: false
 };
 
 // Initialize authentication on page load
@@ -82,29 +78,28 @@ function redirectToLogin(requiredRole) {
  * Demo: Check against hardcoded credentials
  */
 async function login(role, password) {
-  if (CONFIG.DEMO_MODE) {
-    // DEMO MODE ONLY - Remove before production
-    if (!CONFIG.DEMO_CREDENTIALS[role]) return false;
-    if (CONFIG.DEMO_CREDENTIALS[role] !== password) return false;
-  } else {
-    // PRODUCTION MODE - Verify via GAS
-    try {
-      const response = await fetch(CONFIG.GAS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'verifyPassword',
-          role: role,
-          password: password
-        })
-      });
+  // PRODUCTION MODE - Verify via Google Apps Script
+  if (!CONFIG.GAS_URL || CONFIG.GAS_URL === 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec') {
+    console.error('Auth error: GAS_URL not configured. Configure CONFIG.GAS_URL in auth.js');
+    return false;
+  }
 
-      const result = await response.json();
-      if (!result.ok) return false;
-    } catch (error) {
-      console.error('Auth error:', error);
-      return false;
-    }
+  try {
+    const response = await fetch(CONFIG.GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'verifyPassword',
+        role: role,
+        password: password
+      })
+    });
+
+    const result = await response.json();
+    if (!result.ok) return false;
+  } catch (error) {
+    console.error('Auth error:', error);
+    return false;
   }
 
   // Get user details
