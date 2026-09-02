@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Console · KLE Timetable Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0d1b3e;
+      --navy-2: #182b55;
+      --gold: #c9a84c;
+      --gold-2: #ead282;
+      --ink: #13203c;
+      --muted: #68758f;
+      --line: rgba(13, 27, 62, 0.12);
+      --paper: #ffffff;
+      --soft: #f5f1e8;
+      --wash: #eef3f8;
+      --green: #1f7a4d;
+      --red: #c24035;
+      --shadow: 0 18px 45px rgba(13, 27, 62, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Outfit, system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--soft);
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+
+    /* Loading Screen */
+    .loading {
+      position: fixed; inset: 0; z-index: 60;
+      display: grid; place-items: center;
+      background: var(--navy); color: white;
+    }
+    .loading.hidden { display: none; }
+    .loading-box { text-align: center; }
+    .loading-logo {
+      font-family: "Cormorant Garamond", serif;
+      font-size: 40px; font-weight: 600;
+    }
+    .loading-logo span { color: var(--gold); font-style: italic; }
+    .loading-text {
+      margin-top: 12px; color: rgba(255,255,255,0.55);
+      font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+    }
+
+    /* Topbar */
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(13, 27, 62, 0.96); color: white;
+      border-bottom: 1px solid rgba(201,168,76,0.24); backdrop-filter: blur(10px);
+    }
+    .topbar-inner {
+      max-width: 1240px; margin: 0 auto; padding: 11px 18px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; min-width: 210px; }
+    .brand-name { font-size: 17px; font-weight: 700; }
+    .nav { display: flex; align-items: center; gap: 6px; }
+    .nav button {
+      border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.82); min-height: 34px; border-radius: 8px;
+      padding: 7px 11px; font-size: 13px;
+    }
+    .nav button:hover { background: rgba(255,255,255,0.12); }
+    .logout-btn {
+      background: var(--red) !important;
+      color: white !important;
+      border-color: var(--red) !important;
+    }
+    .logout-btn:hover { background: #a03228 !important; }
+
+    /* Hero */
+    .hero {
+      background:
+        linear-gradient(90deg, rgba(13,27,62,0.97) 0%, rgba(13,27,62,0.88) 42%, rgba(24,43,85,0.7) 100%),
+        var(--navy);
+      color: white; padding: 40px 18px; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ""; position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.07) 1px, transparent 1px);
+      background-size: 48px 48px; mix-blend-mode: screen; opacity: 0.7;
+    }
+    .hero-inner {
+      position: relative; max-width: 1240px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr minmax(280px, 350px);
+      gap: 28px; align-items: center;
+    }
+    .eyebrow {
+      color: var(--gold-2); letter-spacing: 0.14em; text-transform: uppercase;
+      font-size: 11.5px; font-weight: 700;
+    }
+    h1 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(34px, 5.6vw, 62px);
+      line-height: 0.98; margin: 10px 0; max-width: 780px;
+    }
+    h1 em { color: var(--gold-2); font-style: italic; }
+    .hero-copy { color: rgba(255,255,255,0.66); max-width: 660px; line-height: 1.6; font-size: 14.5px; }
+    .live {
+      border: 1px solid rgba(201,168,76,0.3); padding: 18px; border-radius: 10px; min-width: 0;
+      background:
+        linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)),
+        radial-gradient(circle at top right, rgba(201,168,76,0.18), transparent 48%);
+      box-shadow: 0 18px 46px rgba(0,0,0,0.18);
+    }
+    .live-label {
+      color: rgba(255,255,255,0.5); font-size: 10.5px;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .live-value {
+      margin-top: 6px; color: var(--gold-2);
+      font-family: "JetBrains Mono", monospace; font-size: 12px;
+    }
+    .live-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: #37d47e; margin-right: 7px; vertical-align: 1px;
+      box-shadow: 0 0 0 3px rgba(55,212,126,0.22); animation: pulse 1.6s ease-in-out infinite;
+    }
+
+    /* Main Content */
+    main { max-width: 1240px; margin: 0 auto; padding: 20px 18px 56px; }
+
+    /* KPI Tiles */
+    .kpis {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+      gap: 12px; margin-bottom: 18px;
+    }
+    .kpi {
+      border: 1px solid var(--line); background: var(--paper); border-radius: 8px;
+      padding: 15px; min-height: 106px; box-shadow: 0 10px 26px rgba(13,27,62,0.07);
+      text-align: left; position: relative; overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      animation: riseIn 0.45s ease both;
+    }
+    .kpi::before {
+      content: ""; position: absolute; inset: 0 0 auto 0; height: 4px;
+      background: var(--accent, var(--gold));
+    }
+    .kpi::after {
+      content: ""; position: absolute; width: 88px; height: 88px;
+      right: -40px; bottom: -42px; border-radius: 50%;
+      background: color-mix(in srgb, var(--accent, var(--gold)) 15%, transparent);
+    }
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(0.78); opacity: 0.65; }
+      50% { transform: scale(1); opacity: 1; }
+    }
+    .kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .kpi-label {
+      color: var(--muted); font-size: 10.5px; font-weight: 700;
+      letter-spacing: 0.09em; text-transform: uppercase;
+    }
+    .kpi-value {
+      font-family: "Cormorant Garamond", serif; font-size: 40px; line-height: 1;
+      margin-top: 8px; color: var(--accent, var(--navy));
+    }
+
+    /* Panels */
+    .panel {
+      display: none; background: var(--paper); border: 1px solid var(--line);
+      border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 18px;
+    }
+    .panel.active { display: block; }
+    .panel-head {
+      padding: 17px 18px; border-bottom: 1px solid var(--line);
+      display: flex; justify-content: space-between; gap: 12px;
+      align-items: center; flex-wrap: wrap;
+      background: linear-gradient(180deg, #fff, #fbfaf7);
+    }
+    .panel-title { font-size: 19px; font-weight: 700; color: var(--navy); }
+    .panel-sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid var(--line); }
+    .tab-btn {
+      padding: 15px 20px; background: none; border: none; cursor: pointer; font-size: 14px;
+      font-weight: 600; color: var(--muted); border-bottom: 3px solid transparent; transition: all 0.3s;
+    }
+    .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 11px 13px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th {
+      color: var(--muted); font-size: 10.5px; letter-spacing: 0.08em;
+      text-transform: uppercase; background: #f7f9fb; position: sticky; top: 0;
+    }
+    tbody tr:hover { background: #fbfcfd; }
+    .table-scroll { max-height: 62vh; overflow: auto; }
+
+    /* Status */
+    .status {
+      display: inline-flex; border-radius: 999px; padding: 4px 9px; min-height: 23px;
+      font-size: 10.5px; font-weight: 700; background: #edf5ef; color: var(--green);
+      white-space: nowrap; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .status.pending { background: #fff6df; color: #8a6500; }
+    .status.inactive { background: #f1f3f6; color: var(--muted); }
+
+    /* Footer */
+    .footer {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; height: 40px;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      background: var(--navy); color: rgba(255,255,255,0.68);
+      border-top: 1px solid rgba(201,168,76,0.24); font-size: 12px; padding: 0 12px;
+    }
+
+    @media (max-width: 720px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      h1 { font-size: clamp(30px, 10vw, 44px); }
+      .panel-head { flex-direction: column; align-items: flex-start; }
+      table { min-width: 720px; }
+      .table-scroll { overflow-x: auto; }
+    }
+  </style>
+  <script src="auth.js"></script>
+</head>
+<body>
+  <div class="loading" id="loading">
+    <div class="loading-box">
+      <div class="loading-logo">KLE <span>Admin</span></div>
+      <div class="loading-text">Loading console</div>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div><div class="brand-name">KLE Timetable Portal</div></div>
+      </div>
+      <nav class="nav">
+        <button onclick="switchTab(event, 'overview')">Dashboard</button>
+        <button onclick="switchTab(event, 'faculty')">Faculty</button>
+        <button onclick="switchTab(event, 'classes')">Classes</button>
+        <button onclick="switchTab(event, 'subjects')">Subjects</button>
+        <button class="logout-btn" onclick="logout()">Sign out</button>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Administration Console</div>
+        <h1>Manage Timetables & <em>Faculty</em></h1>
+        <div class="hero-copy">Complete system oversight with real-time data, conflict detection, and comprehensive reporting.</div>
+      </div>
+      <div class="live">
+        <div class="live-label">System Status</div>
+        <div class="live-value"><span class="live-dot"></span>OPERATIONAL</div>
+        <div class="live-label" style="margin-top: 14px;">Last Updated</div>
+        <div class="live-value" id="liveTime">--:-- --</div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <div class="kpis">
+      <div class="kpi" style="--accent: var(--gold);">
+        <div class="kpi-label">Total Faculty</div>
+        <div class="kpi-value">8</div>
+      </div>
+      <div class="kpi" style="--accent: var(--green);">
+        <div class="kpi-label">Active Classes</div>
+        <div class="kpi-value">12</div>
+      </div>
+      <div class="kpi" style="--accent: #226da8;">
+        <div class="kpi-label">Total Subjects</div>
+        <div class="kpi-value">10</div>
+      </div>
+      <div class="kpi" style="--accent: #7251a5;">
+        <div class="kpi-label">Departments</div>
+        <div class="kpi-value">4</div>
+      </div>
+    </div>
+
+    <section class="panel active">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Faculty Directory</div>
+          <div class="panel-sub">All faculty members and their assignments</div>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Faculty ID</th>
+              <th>Name</th>
+              <th>Department</th>
+              <th>Email</th>
+              <th>Specialization</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>F001</td>
+              <td><strong>Deepa B</strong></td>
+              <td>CSE</td>
+              <td>deepa.b@kletech.ac.in</td>
+              <td>Database Systems</td>
+              <td><span class="status">Active</span></td>
+            </tr>
+            <tr>
+              <td>F002</td>
+              <td><strong>Nandish H</strong></td>
+              <td>CSE</td>
+              <td>nandish.h@kletech.ac.in</td>
+              <td>Web Technology</td>
+              <td><span class="status">Active</span></td>
+            </tr>
+            <tr>
+              <td>F003</td>
+              <td><strong>Rekha S</strong></td>
+              <td>ECE</td>
+              <td>rekha.s@kletech.ac.in</td>
+              <td>Electronics</td>
+              <td><span class="status">Active</span></td>
+            </tr>
+            <tr>
+              <td>F004</td>
+              <td><strong>Shivaleela H</strong></td>
+              <td>ECE</td>
+              <td>shivaleela.h@kletech.ac.in</td>
+              <td>Microelectronics</td>
+              <td><span class="status">Active</span></td>
+            </tr>
+            <tr>
+              <td>F005</td>
+              <td><strong>Dr. Sharma</strong></td>
+              <td>CSE</td>
+              <td>sharma@kletech.ac.in</td>
+              <td>DBMS</td>
+              <td><span class="status">Active</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>KLE Timetable Portal v1.0.0</span> · <span>Admin Console</span> · <span>Last updated <span id="footerTime">--</span></span>
+  </footer>
+
+  <script>
+    // Verify admin access
+    if (!initAuth(AUTH.ADMIN)) {
+      // Redirect happens automatically in initAuth
+    }
+
+    document.getElementById('loading').classList.add('hidden');
+
+    function updateTime() {
+      const now = formatDateTime(new Date());
+      document.getElementById('liveTime').textContent = now;
+      document.getElementById('footerTime').textContent = now;
+    }
+
+    function switchTab(evt, tabName) {
+      const panels = document.querySelectorAll('.panel');
+      const buttons = document.querySelectorAll('.nav button');
+
+      panels.forEach(p => p.classList.remove('active'));
+      buttons.forEach(b => b.classList.remove('active'));
+
+      if (tabName === 'overview') {
+        panels[0].classList.add('active');
+      } else if (tabName === 'faculty') {
+        panels[0].classList.add('active');
+      }
+
+      evt.target.classList.add('active');
+    }
+
+    updateTime();
+    setInterval(updateTime, 60000);
+  </script>
+</body>
+</html>
