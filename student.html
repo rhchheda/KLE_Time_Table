@@ -188,8 +188,10 @@
       <div class="live">
         <div class="live-label">Your Class</div>
         <div class="live-value" id="className">Loading...</div>
-        <div class="live-label" style="margin-top: 14px;">Roll Number</div>
-        <div class="live-value" id="rollNumber">--</div>
+        <div class="live-label" style="margin-top: 14px;">Data Source</div>
+        <div class="live-value" id="dataSource" style="font-size: 12px; display: flex; align-items: center; gap: 6px;">
+          <span id="modeIndicator" style="padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold;"></span>
+        </div>
       </div>
     </div>
   </section>
@@ -449,7 +451,24 @@
     document.getElementById('loading').classList.add('hidden');
 
     document.getElementById('className').textContent = '1st Year CSE-A';
-    document.getElementById('rollNumber').textContent = '1KL21CS001';
+
+    // Display connection status
+    function updateConnectionStatus() {
+      const modeIndicator = document.getElementById('modeIndicator');
+      if (CONFIG.DEMO_MODE) {
+        modeIndicator.textContent = '📊 DEMO MODE (Static Data)';
+        modeIndicator.style.background = '#ffc107';
+        modeIndicator.style.color = '#333';
+      } else if (CONFIG.GAS_URL && CONFIG.GAS_URL !== 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec') {
+        modeIndicator.textContent = '🔗 LIVE (Google Sheets)';
+        modeIndicator.style.background = '#37d47e';
+        modeIndicator.style.color = '#fff';
+      } else {
+        modeIndicator.textContent = '⚙️ NOT CONFIGURED';
+        modeIndicator.style.background = '#ff6b6b';
+        modeIndicator.style.color = '#fff';
+      }
+    }
 
     function updateTime() {
       const now = formatDateTime(new Date());
@@ -472,6 +491,7 @@
     }
 
     updateTime();
+    updateConnectionStatus();
     setInterval(updateTime, 60000);
   </script>
 </body>
