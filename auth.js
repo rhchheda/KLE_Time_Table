@@ -17,7 +17,7 @@ const AUTH = {
 // Configuration - UPDATE THIS WITH YOUR GAS URL
 const CONFIG = {
   // Deploy Main.gs as Web App and paste URL here
-  GAS_URL: 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwGjJJyBwDNCfF_Mu06v1AZdvvFT82sFXT2_bHNXBmXKmQCxiWNZmaSSGXcp7Jyafoh/exec',
 
   // Session timeout in milliseconds (1 hour)
   SESSION_TIMEOUT: 3600000,
